@@ -1,0 +1,492 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: white;
+}
+
+/* Header */
+header {
+    background: white;
+    color: black;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.menu-icon {
+    font-size: 32px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: purple;
+    margin-right: 20px;
+    transition: transform 0.3s ease;
+}
+
+.menu-icon:active {
+    transform: rotate(90deg);
+}
+.profile-referral{
+    color: purple;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 18px;
+    margin: 5px 0;
+    text-align: left;
+}
+.site-title {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-size: 24px;
+    color: black;
+}
+
+nav {
+    flex-grow: 1;
+    text-align: right;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: purple;
+    text-decoration: none;
+    font-weight: bold;
+}
+#menu-dropdown {
+    display: none; /* Menu is hidden by default */
+  }
+#menu-items li a{
+    color: beige;
+    text-decoration-color: beige;
+}  
+/* Intro Section */
+.intro-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    background: white;
+}
+
+.intro-content {
+    display: flex;
+    align-items: center;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.intro-text {
+    flex: 1;
+    font-size: 18px;
+    color: black;
+    text-align: left;
+}
+
+.intro-text h4 {
+    font-size: 28px;
+    color: purple;
+    font-style: italic;
+}
+.logo {
+  height: 40px; /* Adjust height as needed */
+  width: auto;
+  vertical-align: middle; /* Aligns it with the text */
+  margin-right: 10px; /* Adds spacing between the logo and text */
+}
+.home-image {
+    width: 50%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 10px;
+    margin-left: 20px;
+}
+.social-links a {
+    color: purple;
+    font-size: 24px;
+    margin: 0 10px;
+    transition: 0.3s;
+}
+
+.social-links a:hover {
+    color: white; /* Changes to white on hover */
+}
+
+.social-links {
+    margin: 10px 0;
+}
+
+/* Featured Products Title */
+.featured-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    margin: 20px 0;
+}
+
+/* Offers Banner */
+.offers-banner {
+    background: purple;
+    color: white;
+    text-align: center;
+    font-size: 24px;
+    padding: 10px 0;
+    margin: 20px 0;
+    font-weight: bold;
+    font-style: italic;
+}
+.product-list {
+    position: relative;
+    z-index: 1; /* Lower than menu */
+}
+/* Product List */
+.product-list {
+    text-align: center;
+    padding: 40px 20px;
+    width:auto ;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 6 columns on large screens */
+    gap: 20px;
+    
+}
+@media (max-width: 768px) {
+    
+    .product-list {
+        
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+   
+}
+.product h3 {
+    font-size:small;
+    font-weight:400;
+    margin: 7px 0 3px;
+    color: purple;
+}
+
+.product p {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 3px 0 0;
+}
+/* Search Bar */
+.search-container {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#searchBar {
+    width: 60%;
+    padding: 10px;
+    font-size: small;
+    border: 2px solid purple;
+    border-radius: 25px;
+    outline: none;
+}
+
+.product {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers content */
+    width: fit-content; /* Makes div size fit the content */
+    
+    position: relative; /* To position the offer tag */ 
+    
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Limits the size */
+}
+
+.product img {
+    width: 100%; /* Adjust this to your preferred image size */
+    height: auto;
+    border-radius: 5px;
+    
+}
+
+.product-info {
+    width: 100%;
+    text-align: left;
+}
+
+.product-name {
+    font-size: 7px;
+    font-weight: normal;
+    color: black;
+    margin: 3px 0;
+    text-align: left;
+}
+
+.product-price {
+    font-size: 12px;
+    font-weight: bold;
+    color: purple;
+    text-align: left;
+}
+
+.add-to-cart {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 5px;
+    align-self: center;
+}
+
+
+.product:hover {
+    transform: translateY(-5px);
+    box-shadow: purple; /* Green shadow effect */
+}
+
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+    background: purple;
+    color: white;
+    border: none;
+    
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* Cart Quantity Control */
+.cart-quantity-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cart-quantity-container button {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cart-quantity {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+/* Navigation List Adjustments for Cart Icon */
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    align-items:center;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+.cart-nav-item a {
+    position: relative;
+    
+    align-items: center;
+    text-decoration: none;
+}
+
+/* Cart Icon Styles */
+.cart-icon {
+    font-size: 28px;
+    color: purple;
+}
+.breadcrumb {
+    font-size: 14px;
+    color: #555;
+    margin: 10px 0;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background: purple;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    padding: 2px 5px;
+  
+}
+
+/* Offer Tag for first two products */
+.offer-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: purple;
+    color: white;
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 3px;
+}
+
+
+
+/* View All Button */
+/* View All Button Container */
+.view-all-container {
+    text-align: right;
+    margin-top: 20px;
+}
+
+/* View All Button */
+.view-all-btn {
+    display: inline-block;
+    background: white;
+    color: purple;
+    border: 2px solid purple;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-right: 20px;
+}
+
+.view-all-btn:hover {
+    background: purple;
+    color: white;
+}
+
+
+/* Footer */
+footer {
+    background: white;
+    color: black;
+    text-align: center;
+    padding: 15px 0;
+    margin-top: 20px;
+}
+
+/* Menu Dropdown */
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8); /* Translucent black */
+    padding: 5%;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 75%; /* Adjusted to be 3/4 of the screen width */
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 1000; /* Ensure it is above everything */
+}
+
+@media (max-width: 600px) {
+    .menu-dropdown {
+        width: 75%; /* 3/4 of the screen width on mobile */
+        padding: 7%;
+    }
+}
+
+.menu-dropdown.show {
+    display: flex;
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    padding-bottom: 15px;
+}
+
+.profile-icon {
+    font-size: 60px;
+    color: white;
+    text-align: left;
+}
+
+.profile-details {
+    text-align: left;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.profile-name,
+.profile-number {
+    color: purple;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 18px;
+    margin: 5px 0;
+    text-align: left;
+}
+
+.edit-profile {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.menu-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    width: 100%;
+    text-align: left;
+}
+
+.menu-dropdown ul li {
+    padding: 15px;
+    text-align: left;
+}
+
+.menu-dropdown ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+}

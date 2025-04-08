@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Statistics</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+          };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        async function loadDeliveredOrders() {
+            const ordersRef = ref(db, "orders");
+            try {
+                const snapshot = await get(ordersRef);
+                if (snapshot.exists()) {
+                    let orders = [];
+                    snapshot.forEach((orderSnap) => {
+                        let order = orderSnap.val();
+                        if (order.status === "delivered") {
+                            order.id = orderSnap.key;
+                            orders.push(order);
+                        }
+                    });
+
+                    displayOrders(orders);
+                }
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+            }
+        }
+
+        async function displayOrders(orders) {
+            const ordersContainer = document.getElementById("orders");
+            ordersContainer.innerHTML = "";
+            let totalRevenue = 0;
+
+            for (let order of orders) {
+                let orderDiv = document.createElement("div");
+                orderDiv.classList.add("order");
+
+                let timePlaced = new Date(order.timestamp).toLocaleString();
+
+                let productsHtml = "";
+                for (let itemId of order.items || []) {
+                    let productData = await getProductDetails(itemId);
+                    productsHtml += `
+                        <div class='product'>
+                            <img src='${productData.image}' alt='${productData.name}'/>
+                            <p>${productData.name}</p>
+                        </div>`;
+                }
+
+                totalRevenue += order.totalPrice || 0;
+
+                orderDiv.innerHTML = `
+                    <div class="order-info">
+                        <h3>Order ID: ${order.id}</h3>
+                        <div class="products">${productsHtml}</div>
+                        <p class="order-total"><strong>Total Price:</strong> Ksh ${order.totalPrice || "N/A"}</p>
+                        <p class="order-date"><strong>Placed On:</strong> ${timePlaced}</p>
+                    </div>
+                `;
+                ordersContainer.appendChild(orderDiv);
+            }
+
+            document.getElementById("total-revenue").innerText = `Total Revenue: Ksh ${totalRevenue}`;
+        }
+
+        async function getProductDetails(itemId) {
+            const productRef = ref(db, `products/${itemId}`);
+            const snapshot = await get(productRef);
+            return snapshot.exists() ? snapshot.val() : { name: "Unknown", image: "placeholder.jpg" };
+        }
+
+        window.onload = loadDeliveredOrders;
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .order {
+            background: #fff;
+            padding: 15px;
+            margin: 10px auto;
+            width: 80%;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            text-align: left;
+        }
+        .products {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .product {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .product img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+        .order-total, .order-date {
+            text-align: right;
+            font-weight: bold;
+            color: #333;
+        }
+        #total-revenue {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: purple;
+        }
+    </style>
+</head>
+<body>
+    <h2>Order Statistics</h2>
+    <div id="orders"></div>
+    <div id="total-revenue"></div>
+</body>
+</html>

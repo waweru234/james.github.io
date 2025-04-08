@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="myorders.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+    <div class="orders-container">
+        <h2>My Orders</h2>
+        <div id="orders-list"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase();
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get("key");
+
+        async function fetchOrders() {
+            if (!uid) {
+                console.error("User ID not found in URL");
+                return;
+            }
+
+            try {
+                const ordersRef = ref(db, "orders");
+                const snapshot = await get(ordersRef);
+                const ordersList = document.getElementById("orders-list");
+                ordersList.innerHTML = ""; // Clear the previous orders
+
+                if (snapshot.exists()) {
+                    const pendingOrders = [];
+                    const deliveredOrders = [];
+
+                    for (const [orderId, order] of Object.entries(snapshot.val())) {
+                        // Check if the order belongs to the user
+                        if (order.userId !== uid) continue;
+
+                        const orderStatus = order.status.toLowerCase();
+                        const statusClass =
+                            orderStatus === "delivered" ? "status-delivered" :
+                            orderStatus === "pending" ? "status-pending" : "";
+
+                        // Process pending and delivered orders separately
+                        if (orderStatus === "pending" || orderStatus === "delivered") {
+                            let orderHTML = "";
+
+                            for (const productId of order.items) {
+                                try {
+                                    const productRef = ref(db, `products/${productId}`);
+                                    const productSnap = await get(productRef);
+
+                                    if (productSnap.exists()) {
+                                        const product = productSnap.val();
+
+                                        orderHTML += `
+                                            <div class="order">
+                                                <div class="product">
+                                                    <img src="${product.image}" alt="Product">
+                                                    <div class="product-info">
+                                                        <h3>${product.name}</h3>
+                                                        <p>Price: KES ${product.price}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="order-info">
+                                                    <p>Date: ${new Date(order.timestamp).toLocaleDateString()}</p>
+                                                    <span class="order-status ${statusClass}">${order.status.toUpperCase()}</span>
+                                                    ${orderStatus === "pending" ? `
+                                                        <button class="cancel-btn" onclick="cancelOrder('${orderId}', '${productId}')">Cancel Order</button>
+                                                    ` : ""}
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                } catch (err) {
+                                    console.error("Error fetching product:", err);
+                                }
+                            }
+
+                            if (orderStatus === "pending") {
+                                pendingOrders.push(orderHTML);
+                            } else if (orderStatus === "delivered") {
+                                deliveredOrders.push(orderHTML);
+                            }
+                        }
+                    }
+
+                    // Append pending orders first, then delivered orders
+                    ordersList.innerHTML = `
+                        <h3>Pending Orders</h3>
+                        ${pendingOrders.length > 0 ? pendingOrders.join('') : "<p>No pending orders.</p>"}
+                        <h3>Delivered Orders</h3>
+                        ${deliveredOrders.length > 0 ? deliveredOrders.join('') : "<p>No delivered orders.</p>"}
+                    `;
+                } else {
+                    ordersList.innerHTML = "<p>No orders found.</p>";
+                }
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+            }
+        }
+
+        // Cancel Order Function
+        window.cancelOrder = async function(orderId, productId) {
+            const confirmation = confirm("Are you sure you want to cancel this order?");
+            if (!confirmation) return;
+
+            try {
+                const orderRef = ref(db, `orders/${orderId}`);
+                const orderSnapshot = await get(orderRef);
+
+                if (orderSnapshot.exists()) {
+                    const orderData = orderSnapshot.val();
+                    const updatedItems = orderData.items.filter(item => item !== productId);
+
+                    if (updatedItems.length === 0) {
+                        // If no items are left, remove the order completely
+                        await update(orderRef, { items: updatedItems, status: "cancelled" });
+                    } else {
+                        // Update the order with remaining items
+                        await update(orderRef, { items: updatedItems });
+                    }
+
+                    alert("Order canceled successfully!");
+                    location.reload(); // Refresh the page
+                }
+            } catch (error) {
+                console.error("Error canceling order:", error);
+                alert("Failed to cancel order. Try again.");
+            }
+        };
+
+        // Fetch all orders initially
+        fetchOrders();
+    </script>
+</body>
+</html>

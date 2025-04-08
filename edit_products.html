@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+          };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Get product key from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productKey = urlParams.get("id");
+
+        async function loadProduct() {
+            if (productKey) {
+                const productRef = ref(db, `products/${productKey}`);
+                const snapshot = await get(productRef);
+                if (snapshot.exists()) {
+                    const product = snapshot.val();
+                    document.getElementById("name").value = product.name;
+                    document.getElementById("brand").value = product.brand;
+                    document.getElementById("category").value = product.category;
+                    document.getElementById("color").value = product.color;
+                    document.getElementById("price").value = product.price;
+                    document.getElementById("description").value = product.description;
+                    document.getElementById("offer").value = product.offer;
+
+                    // Show product image
+                    const productImage = document.getElementById("product-image");
+                    productImage.src = product.image;
+                    productImage.style.display = "block";
+                }
+            }
+        }
+
+        window.saveProduct = async function () {
+            console.log("iii")
+            const name = document.getElementById("name").value;
+            const brand = document.getElementById("brand").value;
+            const category = document.getElementById("category").value;
+            const color = document.getElementById("color").value;
+            const price = document.getElementById("price").value;
+            const description = document.getElementById("description").value;
+            const offer = document.getElementById("offer").value;
+
+            if (!price || isNaN(price) || price <= 0) {
+                alert("Please enter a valid price.");
+                return;
+            }
+
+            const productData = { name, brand, category, color, price, description, offer };
+
+            if (productKey) {
+                // Update existing product
+                await update(ref(db, `products/${productKey}`), productData);
+                alert("Product updated successfully!");
+            } else {
+                // Add a new product
+                const newProductRef = ref(db, `products/${Date.now()}`);
+                await set(newProductRef, productData);
+                alert("New product added!");
+            }
+
+            window.location.href = "products.html"; // Redirect to product list
+        }
+
+        window.onload = loadProduct;
+    </script>
+
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f8f8; }
+        form { 
+            max-width: 400px; 
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            text-align: left;
+        }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, textarea { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border-radius: 5px; 
+            border: 1px solid #ddd; 
+        }
+        button { 
+            background: purple; 
+            color: white; 
+            padding: 10px; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            margin-top: 10px;
+            width: 100%;
+        }
+        button:hover { background: darkmagenta; }
+        img { 
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 10px; 
+            display: none; 
+            margin-bottom: 10px; 
+        }
+    </style>
+</head>
+<body>
+    <h2>Edit Product</h2>
+    <form onsubmit="event.preventDefault(); saveProduct();">
+        <img id="product-image" src="" alt="Product Image">
+        
+        <label for="name">Product Name:</label>
+        <input type="text" id="name" required>
+        
+        <label for="brand">Brand:</label>
+        <input type="text" id="brand" required>
+
+        <label for="category">Category:</label>
+        <input type="text" id="category" required>
+
+        <label for="color">Color:</label>
+        <input type="text" id="color" required>
+
+        <label for="price">Price (in KES):</label>
+        <input type="number" id="price" min="1" step="0.01" required>
+
+        <label for="description">Description:</label>
+        <textarea id="description" required></textarea>
+
+        <label for="offer">Offer (yes/no):</label>
+        <input type="text" id="offer">
+
+        <button type="submit">Save Product</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,340 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: white;
+}
+
+/* Header */
+header {
+    background: white;
+    color: black;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.site-title {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-size: 24px;
+    color: black;
+}
+
+.cart-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cart-icon {
+    font-size: 28px;
+    color: purple;
+    cursor: pointer;
+}
+
+.cart-count {
+    background: purple;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -5px;
+    right: -10px;
+}
+.social-links a {
+    color: purple;
+    font-size: 24px;
+    margin: 0 10px;
+    transition: 0.3s;
+}
+.logo {
+    height: 40px; /* Adjust height as needed */
+    width: auto;
+    vertical-align: middle; /* Aligns it with the text */
+    margin-right: 10px; /* Adds spacing between the logo and text */
+  }
+.social-links a:hover {
+    color: white; /* Changes to white on hover */
+}
+
+.social-links {
+    margin: 10px 0;
+}
+/* Product View */
+.product-view {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 40px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.product-image {
+    position: relative;
+}
+.main-image-container {
+    overflow: hidden;
+    width: 100%;
+}
+.main-image {
+    width: 100%;
+    height: auto;
+    transition: all 0.3s ease; 
+}
+.image-thumbnails {
+    display: flex;
+    margin-top: 10px;
+}
+.thumbnail {
+    width: 100px; /* Adjust thumbnail width */
+    height: auto;
+    cursor: pointer;
+    margin-right: 5px;
+}
+.thumbnail:hover {
+    opacity: 0.8; /* Slight hover effect */
+}
+
+.product-details {
+    max-width: 500px;
+}
+
+.product-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 10px;
+}
+
+.product-price {
+    font-size: 22px;
+    font-weight: bold;
+    color: purple;
+    margin-bottom: 10px;
+}
+
+.product-brand {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.add-to-cart {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.add-to-cart:hover {
+    background: darkmagenta;
+}
+
+.product-description {
+    margin-top: 20px;
+}
+
+.product-description h3 {
+    font-size: 18px;
+    color: black;
+    margin-bottom: 10px;
+}
+
+.product-description p {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .product-view {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .product-image img {
+        width: 100%;
+        max-width: 300px;
+    }
+    .product-details {
+        max-width: 100%;
+    }
+}
+.related-products {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.related-products h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    justify-content: center;
+}
+@media (max-width: 768px) {
+    
+    .product-grid {
+        
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+   
+}
+.product {
+    border: 1px solid #ddd;
+    padding: 15px;
+    text-align: center;
+    background: white;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.product:hover {
+    transform: scale(1.05);
+}
+
+.product img {
+    width: 100%;
+    height: auto;
+}
+
+.add-to-cart-btn {
+    background-color: purple;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.add-to-cart-btn:hover {
+    background-color: darkmagenta;
+}
+.cart-quantity-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cart-quantity-container button {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cart-quantity {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+.cart-quantity-containe {
+    display: inline;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cart-quantity-containe button {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cart-quantity {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+.cart-quantityy-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cart-quantityy-container button {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cart-quantityy {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+.cart-quantityy-containe {
+    display: inline;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cart-quantityy-containe button {
+    background: purple;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cart-quantityy {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+footer {
+    background: white;
+    color: black;
+    text-align: center;
+    padding: 15px 0;
+    margin-top: 20px;
+}

@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EXPLORER</title>
+  <title>All Products - EXPLORER</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="images/logo.png"> 
   <!-- Font Awesome for Social Icons -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
-  <!-- SweetAlert2 CDN (if needed elsewhere) -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
 </head>
 <body>
-  <!-- HEADER -->
   <header>
     <button class="menu-icon">☰</button>
     <h1 class="site-title">
@@ -21,25 +20,28 @@
     <nav>
       <ul>
         <li class="cart-nav-item">
-          <a href="#cart" onclick="window.location.href='cart.html';">
-            <i class="cart-icon">🛒</i>
-            <span class="cart-count">0</span>
-          </a>
-        </li>
+            <a href="#cart">
+              <i class="cart-icon" onclick="window.location.href='cart.html';">🛒</i>
+              <span class="cart-count">0</span>
+            </a>
+          </li>
+        
+      
       </ul>
     </nav>
   </header>
-
-  <!-- MENU DROPDOWN (Hidden by default) -->
+  
+  <!-- Menu Dropdown (same as index.html) -->
   <div id="menu-dropdown" class="menu-dropdown left-menu">
     <div class="menu-header" id="menu-header">
       <div class="profile-icon">👤</div>
+      
     </div>
     <div class="profile-details" id="profile-details">
-      <!-- User's full name and phone will be appended here -->
+     
     </div>
     <ul id="menu-items">
-      <li id="aa" href=></li>
+      <li id="aa"></li>
       <li id="bb"></li>
       <li id="cc"></li>
       <li id="dd"></li>
@@ -48,27 +50,21 @@
       <li id="gg"></li>
     </ul>
   </div>
+  
+  <!-- All Products Section -->
+  <section class="all-products-section">
+    <h2 class="featured-title">All Products</h2>
+    <div class="search-container">
+      <input type="text" id="searchBar" placeholder="Search for products..." oninput="searchProducts()">
 
-  <!-- INTRO SECTION -->
-  <section id="intro" class="intro-section">
-    <div class="intro-content">
-      <div class="intro-text">
-        <h4>Dancing Future!</h4>
-        <p>Hi-Tech.Cut Price.Hi-Quality Products! Shop for high quality  products at affordable prices at explorer you number one e-commerce store!</p>
-      </div>
-      <img src="images/homepic.jpg" alt="Home Image" class="home-image">
     </div>
+    <p class="breadcrumb"><span id="breadcrumbText">ALL PRODUCTS</span></p>
+    <section class="product-list"id="products">
+     
+      <!-- Add more products as needed -->
+    </section>
   </section>
-
-  <!-- FEATURED PRODUCTS -->
-  <h2 class="featured-title">Featured Products</h2>
-  <section id="products" class="product-list">
-    <!-- Products will be rendered here -->
-  </section>
-  <div class="view-all-container">
-    <a onclick="window.location.href='allproducts.html';" class="view-all-btn">View All</a>
-  </div>
-
+  
   <footer style="background-color: black; color: white; text-align: center; padding: 20px;">
     <h2>Contact Us</h2>
     <div class="social-links">
@@ -92,12 +88,13 @@
     <p>&copy; 2025 Project X. All rights reserved.</p>
 </footer>
 
-  <!-- SCRIPTS -->
+
+
   <script type="module">
-    // Import Firebase modules from v11
+  
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged,signOut, deleteUser } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getDatabase, ref, get, update,remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -109,13 +106,43 @@
       messagingSenderId: "857181457762",
       appId: "1:857181457762:web:eb0d79340b06827efcb03b"
     };
+    
 
+  let cart = [];
+  let uy="";
+  function searchProducts(searchQuery = null) {
+    let searchInput = document.getElementById("searchBar");
+    let urlParams = new URLSearchParams(window.location.search);
+    let queryFromUrl = urlParams.get("search");
+
+    // If no searchQuery is provided, use the URL param
+    if (searchQuery === null) {
+        searchQuery = queryFromUrl ? queryFromUrl.toLowerCase() : "";
+        searchInput.value = searchQuery; // Set search bar value
+    }
+
+    let breadcrumbText = document.getElementById("breadcrumbText");
+    breadcrumbText.innerText = searchQuery ? `Home > ${searchQuery.toUpperCase()}` : "Home > ALL PRODUCTS";
+
+    let products = document.querySelectorAll(".product");
+
+    products.forEach(product => {
+        let productName = product.querySelector("h3").innerText.toLowerCase();
+        let productCategory = product.dataset.category ? product.dataset.category.toLowerCase() : ""; 
+
+        // Show products that match the search query (name or category)
+        if (!searchQuery || productName.includes(searchQuery) || productCategory.includes(searchQuery)) {
+            product.style.display = "block";
+        } else {
+            product.style.display = "none";
+        }
+    });
+}
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const db = getDatabase();
-    let cart=[];
-    let uy="";
+
     /* -------------------------
        MENU TOGGLE FUNCTIONALITY
        ------------------------- */
@@ -147,8 +174,8 @@
         // Load cart count from Firebase when user logs in
         onAuthStateChanged(auth, (user) => {
           if (user) {
-            const userCartRef = ref(db, `users/${user.uid}/cart`);
             uy=user.uid;
+            const userCartRef = ref(db, `users/${user.uid}/cart`);
             get(userCartRef).then((snapshot) => {
               if (snapshot.exists()) {
                 cart = snapshot.val();
@@ -158,7 +185,7 @@
             });
           }
         });
-      
+        
         document.body.addEventListener('click', function(event) {
           // Add to Cart button clicked
           if (event.target.classList.contains('add-to-cart-btn')) {
@@ -234,7 +261,10 @@
             if (!Array.isArray(cart)) cart = [];
             cart.push(productKey);
             update(ref(db, `users/${user.uid}`), { cart: cart });
+            localStorage.setItem("cart", JSON.stringify(cart)); // Store updated cart
+          alert(productName + " added to cart!");
           });
+          
         }
       
         function removeFromCart(productKey) {
@@ -251,73 +281,78 @@
             if (index > -1) {
               cart.splice(index, 1);
               update(ref(db, `users/${user.uid}`), { cart: cart });
+              localStorage.setItem("cart", JSON.stringify(cart)); // Store updated cart
+          alert(productKey + " Removed from cart!");
             }
           });
+         
         }
       });
-
+      function goToCart() {
+        window.location.href = "cart.html";
+    }
     /* -------------------------
        RENDER PRODUCTS FROM FIREBASE
        ------------------------- */
-    function renderProducts() {
-      const user = auth.currentUser;
-    const productsRef = ref(db, "products/");
-    let  count =0;
-    get(productsRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        if (count < 12) {
-        const productsContainer = document.getElementById("products");
-        productsContainer.innerHTML = ""; // Clear previous content
-
-        snapshot.forEach((childSnapshot) => {
-          const productData = childSnapshot.val();
-          const productKey = childSnapshot.key;
-
-          let productDiv = document.createElement("div");
-          productDiv.className = "product";
-          productDiv.dataset.key = productKey;
-          let ww=document.createElement("div")
-          ww.className="offer-tag"
-          ww.innerHTML="offer"
-          if(productData.offer === "yes"){
-            productDiv.appendChild(ww)
-          }
-          let img = document.createElement("img");
-          img.src = productData.image;
-          img.alt = productData.name;
-          img.addEventListener("click", () => {
-            window.location.href = `product.html?key=${productKey}&user=${uy}&cart=${cart}`;
+       function renderProducts() {
+        const productsRef = ref(db, "products/");
+    
+        get(productsRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const productsContainer = document.getElementById("products");
+                productsContainer.innerHTML = ""; // Clear previous content
+    
+                snapshot.forEach((childSnapshot) => {
+                    const productData = childSnapshot.val();
+                    const productKey = childSnapshot.key;
+    
+                    let productDiv = document.createElement("div");
+                    productDiv.className = "product";
+                    productDiv.dataset.key = productKey;
+                    productDiv.dataset.category = productData.category || ""; // Add category as dataset attribute
+    
+                    let img = document.createElement("img");
+                    img.src = productData.image;
+                    img.alt = productData.name;
+                    img.addEventListener("click", () => {
+                        window.location.href = `product.html?key=${productKey}`;
+                    });
+                    productDiv.appendChild(img);
+    
+                    let title = document.createElement("h3");
+                    title.innerHTML = productData.name;
+                    productDiv.appendChild(title);
+    
+                    let price = document.createElement("p");
+                    price.innerHTML = "Ksh " + productData.price;
+                    productDiv.appendChild(price);
+    
+                    let addToCartBtn = document.createElement("button");
+                    addToCartBtn.className = "add-to-cart-btn";
+                    addToCartBtn.innerHTML = "Add to Cart";
+                    addToCartBtn.dataset.key = productKey;
+                    productDiv.appendChild(addToCartBtn);
+    
+                    productsContainer.appendChild(productDiv);
+                });
+    
+                // **Now that products are loaded, call searchProducts**
+                searchProducts();  
+            }
         });
-          productDiv.appendChild(img);
-
-          let title = document.createElement("h3");
-          title.innerHTML = productData.name;
-          productDiv.appendChild(title);
-
-          let price = document.createElement("p");
-          price.innerHTML = "Ksh " + productData.price;
-          productDiv.appendChild(price);
-
-          if (user && cart[productKey]) {
-            replaceButtonWithQuantity(productDiv, cart[productKey]);
-          } else {
-            let addToCartBtn = document.createElement("button");
-            addToCartBtn.className = "add-to-cart-btn";
-            addToCartBtn.innerHTML = "Add to Cart";
-            addToCartBtn.dataset.key = productKey;
-            productDiv.appendChild(addToCartBtn);
-          }
-
-          productsContainer.appendChild(productDiv);
-        });
-        count++;
-      }
-      }
-    });
     }
     
-    renderProducts();
-
+    
+    
+    window.onload = function () {
+      renderProducts(); // Will now also call searchProducts() automatically after loading
+  }; // Run search with the URL parameter
+  
+  
+  // Add event listener for live searching
+  document.getElementById("searchBar").addEventListener("input", (event) => {
+    searchProducts(event.target.value.toLowerCase()); // Live search as the user types
+});;
     /* -------------------------
        RENDER MENU ITEMS BASED ON USER DATA
        ------------------------- */
@@ -336,22 +371,24 @@
             console.error("Logout error:", error);
             alert("Error logging out. Try again.");
         });
-}
-
-// Delete Account Function
-function deleteAccount(event) {
+    }
+    
+    // Delete Account Function
+    function deleteAccount(event) {
     event.preventDefault(); // Prevent default link behavior
     let confirmation = confirm("Are you sure you want to delete your account? This action is irreversible.");
     if (!confirmation) return;
-
+    
     const user = auth.currentUser;
+   
     if (!user) {
         alert("No user is logged in.");
         return;
     }
-
+    
     // Delete user data from database first
     const userRef = ref(db, `users/${user.uid}`);
+    console.log(userRef)
     remove(userRef)
         .then(() => {
             // Now delete the user from authentication
@@ -365,7 +402,7 @@ function deleteAccount(event) {
             console.error("Delete error:", error);
             alert("Error deleting account. Try logging in again before deleting.");
         });
-}
+    }
         const userCartRef = ref(db, `users/${user.uid}/cart`);
         get(userCartRef)
           .then((snapshot) => {
@@ -417,14 +454,14 @@ function deleteAccount(event) {
           .catch((error) => {
             console.error("Error fetching cart data:", error);
           });
-        console.log("User is signed in:", user.email);
+        uy=user.uid;
+        console.log("User is signed in:", uy);
+        
+        console.log("")
         var menuHeader = document.getElementById("menu-header");
         var editBtn = document.createElement("button");
         editBtn.className = "edit-profile";
         editBtn.innerText = "Edit Profile";
-        editBtn.addEventListener("click", function () {
-          window.location.href = `edit_profile.html?uid=${user.uid}`;
-      });
         menuHeader.appendChild(editBtn);
 
         const usersRef = ref(db, 'users/');
@@ -460,24 +497,27 @@ function deleteAccount(event) {
                   }
                   
                   if(userData.type === 'normal'){
+                   
+                    
                     for (let i = 0; i < menuItems.length; i++) {
-                      var aTag = document.createElement("a");
-                      aTag.href = menuoperation[i]; // Default href
-                      aTag.innerText = menuItems[i];
-                  
-                      if (menuItems[i] === "Electronics" || menuItems[i] === "Phone Accessories" || menuItems[i] === "Beauty Products") {
-                          aTag.addEventListener("click", function () {
-                              let category = encodeURIComponent(menuItems[i]); // Encode for URL safety
-                              window.location.href = `allproducts.html?search=${category}`; // Redirect with category
-                          });
+                        var aTag = document.createElement("a");
+                        aTag.href = menuoperation[i]; // Default href
+                        aTag.innerText = menuItems[i];
+                    
+                        if (menuItems[i] === "Electronics" || menuItems[i] === "Phone Accessories" || menuItems[i] === "Beauty Products") {
+                            aTag.addEventListener("click", function () {
+                                let category = encodeURIComponent(menuItems[i]); // Encode for URL safety
+                                window.location.href = `allproducts.html?search=${category}`; // Redirect with category
+                            });
+                        }
+                        if (menuItems[i] === "Log Out") {
+                          aTag.addEventListener("click", logoutUser);
+                      } else if (menuItems[i] === "Delete Account") {
+                          aTag.addEventListener("click", deleteAccount);
                       }
-                      if (menuItems[i] === "Log Out") {
-                        aTag.addEventListener("click", logoutUser);
-                    } else if (menuItems[i] === "Delete Account") {
-                        aTag.addEventListener("click", deleteAccount);
+                        document.getElementById(menuIds[i]).appendChild(aTag);
                     }
-                      document.getElementById(menuIds[i]).appendChild(aTag);
-                    }
+                    
                   } else {
                     menuItems = ['My Orders','Orders Received','Products','Add An Admin','Statistics','Log Out','Delete Account'];
                     menuIds = ["aa","bb","cc","dd","ee","ff","gg"];
@@ -509,8 +549,8 @@ function deleteAccount(event) {
         loginSignUpBtn.className = "edit-profile";
         loginSignUpBtn.innerText = "Login/Sign Up";
         loginSignUpBtn.addEventListener("click", function() {
-    window.location.href = "login.html"; // Redirect to login.html
-});
+          window.location.href = "login.html"; // Redirect to login.html
+      });
         menuHeader.appendChild(loginSignUpBtn);
 
         let menuItems = ['Electronics','Beauty Products','Phone Accessories'];

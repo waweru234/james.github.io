@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Product</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/logo.png"> 
+    <!-- Font Awesome for Social Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <h1 class="site-title">
+            <img src="images/logo.png" alt="Explorer Logo" class="logo"> EXPLORER
+          </h1>
+        <div class="cart-container">
+            <span class="cart-icon" onclick="window.location.href='cart.html';">&#128722;</span>
+            <span class="cart-count" id="cart-count">0</span>
+        </div>
+    </header>
+    
+    <div class="product-view">
+        <div class="product-image">
+            <div class="main-image-container">
+                <img src="" alt="Product Image" class="main-image">
+            </div>
+        
+            <div class="image-thumbnails">
+                <img class="thumbnail" src="" alt="Thumbnail 1" onclick="updateMainImage(this)">
+                <img class="thumbnail" src="" alt="Thumbnail 2" onclick="updateMainImage(this)">
+                <img class="thumbnail" src="" alt="Thumbnail 3" onclick="updateMainImage(this)">
+                <!-- More thumbnails can be added dynamically -->
+            </div>
+        </div>
+        
+        <div class="product-details">
+            <h2 class="product-name"></h2>
+            <p class="product-price"><strong></strong></p>
+            <p class="product-brand"></p>
+            <button type="button" class="add-to-cart">Add to Cart</button>
+            <div class="product-description">
+                <h3>Description</h3>
+                <p></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <section class="related-products">
+        <h2>You May Also Like</h2>
+        <div class="product-grid">
+        
+        </div>
+    </section>
+    <footer style="background-color: black; color: white; text-align: center; padding: 20px;">
+        <h2>Contact Us</h2>
+        <div class="social-links">
+           
+            <a href="https://x.com/xplorer779?t=_x-56-BHeYLIqsBWXgPNNw&s=08" target="_blank">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="https://chat.whatsapp.com/Gw2xEpJ81GN5cLfeeb3JI8" target="_blank">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://www.tiktok.com/@xplorer775?_t=ZM-8uXFsnSwmpS&_r=1" target="_blank">
+                <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61573994129027" target="_blank">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://www.instagram.com/explo_rer2025?utm_source=qr&igsh=ZTU4eHpkZTQ4OHI1" target="_blank">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+        <p>&copy; 2025 Project X. All rights reserved.</p>
+    </footer>
+      <script type="module">
+        // Import Firebase Modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+        };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase();
+        const auth = getAuth();
+        
+        let uid = "";
+        let productKey = "";
+        let cart = [];
+        let startX;
+
+        // Event listeners for touch events
+        document.querySelector('.main-image-container').addEventListener('touchstart', (e) => {
+            startX = e.changedTouches[0].clientX;
+        });
+        document.querySelector('.main-image-container').addEventListener('touchend', (e) => {
+            const endX = e.changedTouches[0].clientX;
+            if (endX - startX > 50) {
+                // Swipe right
+                showPreviousImage();
+            } else if (startX - endX > 50) {
+                // Swipe left
+                showNextImage();
+            }
+        });
+        
+        function showPreviousImage() {
+            // Logic to show the previous image
+        }
+        
+        function showNextImage() {
+            // Logic to show the next image
+        }
+        // Function to Get Product Key and User ID from URL
+        function getProductKeyFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            uid = urlParams.get("user");
+            productKey = urlParams.get("key");
+            cart=urlParams.get("cart");
+            console.log(cart)
+            console.log(uid)
+            console.log(productKey)
+        }
+        function updateMainImage(thumbnail) {
+            const mainImage = document.querySelector('.main-image');
+            mainImage.src = thumbnail.src;
+        }
+        // Function to Update Cart Count on the Page
+        function updateCartCount(cart) {
+            document.querySelector(".cart-count").innerText = cart;
+        }
+    
+        // Function to Load Product Data and Cart
+        async function loadProduct() {
+            getProductKeyFromURL();
+            if (!productKey) {
+                alert("Product not found!");
+                return;
+            }
+    
+            // Fetch product data
+            const productRef = ref(db, `products/${productKey}`);
+            const snapshot = await get(productRef);
+    
+            if (snapshot.exists()) {
+                const product = snapshot.val();
+                var images=[];
+
+               // Set the main image to the first thumbnail
+
+// Populate thumbnails
+                if (product.image) {
+                    images.push(product.image);
+                }
+                if (product.image1) {
+                    images.push(product.image1);
+                }
+                if (product.image2) {
+                    images.push(product.image2);
+                }
+                if (product.image3) {
+                    images.push(product.image3);
+                }
+                // Update Product UI
+                
+                document.querySelector(".product-name").innerText = product.name;
+                document.querySelector(".product-price").innerHTML = `<strong>KSh ${product.price.toLocaleString()}</strong>`;
+                document.querySelector(".product-brand").innerText = `Brand: ${product.brand || "Unknown"}`;
+                document.querySelector(".product-description p").innerText = product.description || "No description available.";
+                document.querySelector(".main-image").src = images[0]; 
+                const thumbnailsContainer = document.querySelector(".image-thumbnails");
+
+                thumbnailsContainer.innerHTML = ""; // Clear existing thumbnails
+images.forEach((imgSrc) => {
+    const thumbnail = document.createElement("img");
+    thumbnail.src = imgSrc;
+    thumbnail.className = "thumbnail";
+    thumbnail.onclick = function () { updateMainImage(thumbnail); };
+    thumbnailsContainer.appendChild(thumbnail);
+});
+                // Fetch User's Cart and Update UI
+                if (uid) {
+                    const userCartRef = ref(db, `users/${uid}/cart`);
+                    const cartSnapshot = await get(userCartRef);
+    
+                    if (cartSnapshot.exists()) {
+                        cart = cartSnapshot.val() || [];
+                        if (!Array.isArray(cart)) cart = [];
+    
+                        updateCartCount(cart.length); // Update cart count on page load
+    
+                        let productCount = cart.filter(item => item === productKey).length;
+                        if (productCount > 0) {
+                            replaceButtonWithQuantity(document.querySelector(".add-to-cart"), productCount);
+                        }
+                    }
+                }
+                images.forEach((imgSrc, index) => {
+                    const thumbnail = document.createElement("img");
+                    thumbnail.src = imgSrc;
+                    thumbnail.className = "thumbnail";
+                    thumbnail.onclick = function () {
+                        mainImage.src = imgSrc;
+                    };
+                    thumbnailsContainer.appendChild(thumbnail);
+                });
+            } else {
+                alert("Product not found in database!");
+            }
+        }
+    
+        // Function to Add Product to Cart
+        function addToCart(productKe,ui) {
+            if (!uid) {
+                alert("You need to be logged in to add items to the cart.");
+                return;
+            }
+    
+            const userCartRef = ref(db, `users/${uid}/cart`);
+            get(userCartRef).then((snapshot) => {
+                let cart = snapshot.exists() ? snapshot.val() : [];
+                if (!Array.isArray(cart)) cart = [];
+    
+                cart.push(productKe); // Add product to cart
+                update(ref(db, `users/${uid}`), { cart: cart });
+                 let io=cart.length;
+                 
+                let productCount = cart.filter(item => item === productKe).length;
+                console.log(io)
+                if(productCount==1){
+                    if(productKe==productKey){
+                        replaceButtonWithQuantity(document.querySelector(".add-to-cart"), productCount);
+                    }else{
+                       
+
+                    }
+                    
+                }
+                
+                
+                updateCartCount(cart.length); // Update cart count after adding
+            });
+        }
+        window.move = async function (){
+            console.log("kk")
+            let quantityContainer = event.target.parentElement;
+                    let productkkkey = quantityContainer.dataset.key;
+            window.location.href = `product.html?key=${productkkkey}&user=${uid}&cart=${cart}`;
+        }
+        // Function to Remove Product from Cart
+        async function loadRelatedProducts() {
+            const productsRef = ref(db, "products");
+            const snapshot = await get(productsRef);
+        
+            if (snapshot.exists()) {
+                const products = snapshot.val();
+                
+                const relatedProductsContainer = document.querySelector(".product-grid");
+                relatedProductsContainer.innerHTML = ""; // Clear existing content
+        
+                let count = 0;
+                for (let key in products) {
+                    if (key !== productKey && count < 12) { // Exclude current product and limit to 3
+                        const product = products[key];
+        
+                        const productDiv = document.createElement("div");
+                        productDiv.className = "product";
+                        productDiv.dataset.key = key;
+
+                        console.log()
+                        productDiv.innerHTML = `
+                            <img src="${product.image || 'images/default.jpg'}" alt="${product.name}" onclick="move(001)">
+                            <h3>${product.name}</h3>
+                            <p><strong>KSh ${product.price.toLocaleString()}</strong></p>
+                            <button type="button" class="add-to-cart-btn" data-key="${key}">Add to Cart</button>
+                        `;
+                        
+                        relatedProductsContainer.appendChild(productDiv);
+                        count++;
+                    }
+                }
+            }
+            const userCartRef = ref(db, `users/${uid}/cart`);
+            get(userCartRef)
+              .then((snapshot) => {
+                let car = snapshot.exists() ? snapshot.val() : [];
+                // Ensure cart is an array
+                if (!Array.isArray(cart)) {
+                  car = [];
+                }
+                // Update the cart icon with the total number of items in the cart.
+                const totalItems = car.length;
+               
+        
+                // Create an object that counts how many times each product key appears.
+                const productCounts = {};
+                car.forEach((productKey) => {
+                  productCounts[productKey] = (productCounts[productKey] || 0) + 1;
+                });
+                
+                // For each rendered product, update its quantity control if it exists.
+                // It is assumed that each product container has a data attribute "data-key" that matches the product key.
+                document.querySelectorAll('.product').forEach((prodElem) => {
+                  const prodKey = prodElem.dataset.key;
+                  console.log(prodKey)
+                  if (prodKey && productCounts[prodKey] !== undefined) {
+                    // If the product is already in the cart, update or create quantity controls.
+                    let quantityControl = prodElem.querySelector('.cart-quantity-container');
+                    if (quantityControl) {
+                      // Update the quantity displayed
+                      quantityControl.querySelector('.cart-quantityy').innerText = productCounts[prodKey];
+                    } else {
+                      // If no quantity control exists, remove the "Add to Cart" button (if present)
+                      const addButton = prodElem.querySelector('.add-to-cart-btn');
+                      if (addButton) {
+                        const newControl = document.createElement('div');
+                        newControl.className = 'cart-quantity-container';
+                        // Save the product key for later updates
+                        newControl.dataset.key = prodKey;
+                        newControl.innerHTML = `
+                          <button class="decrease-btnn">−</button>
+                          <span class="cart-quantityy">${productCounts[prodKey]}</span>
+                          <button class="increase-btnn">+</button>
+                        `;
+                        addButton.parentNode.replaceChild(newControl, addButton);
+                      }
+                    }
+                }
+            });
+        })
+        }
+        
+        // Load related products when the page loads
+     
+        
+        // Event Listener for Add to Cart
+     
+        function removeFromCart(productKe) {
+            if (!uid) {
+                alert("You need to be logged in to remove items from the cart.");
+                return;
+            }
+    
+            const userCartRef = ref(db, `users/${uid}/cart`);
+            get(userCartRef).then((snapshot) => {
+                let cart = snapshot.exists() ? snapshot.val() : [];
+                if (!Array.isArray(cart)) cart = [];
+    
+                const index = cart.lastIndexOf(productKe);
+                if (index > -1) {
+                    cart.splice(index, 1);
+                    update(ref(db, `users/${uid}`), { cart: cart });
+    
+                    let productCount = cart.filter(item => item === productKe).length;
+    
+                    if (productCount > 0) {
+                       
+                    } else {
+                        if(productKe==productKey){
+                            restoreAddToCartButton(document.querySelector(".cart-quantity-containe"));
+                        }else{
+                            
+
+                        }
+                        
+                    }
+    
+                    updateCartCount(cart.length); // Update cart count after removing
+                }
+            });
+        }
+    
+        // Function to Replace "Add to Cart" Button with Quantity Selector
+        function replaceButtonWithQuantity(button, productCount) {
+            const quantityContainer = document.createElement('div');
+            quantityContainer.className = 'cart-quantity-containe';
+            if(button.getAttribute("data-key")!=undefined){
+                quantityContainer.dataset.key = button.getAttribute("data-key");
+            }
+            
+            quantityContainer.innerHTML = `
+                <button class="decrease-btn">−</button>
+                <span class="cart-quantity">${productCount}</span>
+                <button class="increase-btn">+</button>
+            `;
+    
+            button.parentNode.replaceChild(quantityContainer, button);
+        }
+        function replaceButtonWithQuantit(button) {
+            const quantityContainer = document.createElement('div');
+            quantityContainer.className = 'cart-quantity-container';
+            
+            // Ensure the dataset key is correctly assigned
+            if (button.dataset.key) {
+                quantityContainer.dataset.key = button.dataset.key;
+            }
+            
+            quantityContainer.innerHTML = `
+                <button class="decrease-btnn">−</button>
+                <span class="cart-quantityy">1</span>
+                <button class="increase-btnn">+</button>
+            `;
+        
+            // Replace only the clicked button
+            button.parentNode.replaceChild(quantityContainer, button);
+        }
+        
+        // Function to Restore "Add to Cart" Button
+        function restoreAddToCartButton(quantityContainer) {
+            const addButton = document.createElement('button');
+            addButton.className = 'add-to-cart';
+            addButton.innerText = "Add to Cart";
+            quantityContainer.parentNode.replaceChild(addButton, quantityContainer);
+        }
+            function restoreAddToCartButto(quantityContainer) {
+                const addButton = document.createElement('button');
+                addButton.className = 'add-to-cart-btn';
+                addButton.innerText = "Add to Cart";
+                
+                // Ensure the product key is maintained
+                if (quantityContainer.dataset.key) {
+                    addButton.dataset.key = quantityContainer.dataset.key;
+                }
+            
+                // Replace only the correct container
+                quantityContainer.parentNode.replaceChild(addButton, quantityContainer);
+            }
+            
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('add-to-cart-btn')) {
+                    event.preventDefault();
+                    let quantityContainer = event.target.parentElement;
+                    let productKey = quantityContainer.dataset.key;
+                    // Get the correct product key
+                    addToCart(productKey, );
+                    replaceButtonWithQuantit(event.target); // Pass button reference
+                }
+        
+                if (event.target.classList.contains('increase-btnn')) {
+                    let quantityContainer = event.target.parentElement;
+                    let productKey = quantityContainer.dataset.key;
+                    let quantityElement = event.target.previousElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    quantityElement.innerText = quantity + 1;
+                    
+                    addToCart(productKey);
+                    
+                }
+        
+                if (event.target.classList.contains('decrease-btnn')) {
+                    let quantityContainer = event.target.parentElement;
+                    let productKey = quantityContainer.dataset.key;
+                    let quantityElement = event.target.nextElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    
+                    if (quantity > 1) {
+                        quantityElement.innerText = quantity - 1;
+                        removeFromCart(productKey);
+                    } else {
+
+                        removeFromCart(productKey);
+                        restoreAddToCartButto(quantityContainer);
+                    }
+                }
+            });
+        });
+        
+      
+        // Event Listener for Add to Cart and Quantity Buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('add-to-cart')) {
+                    event.preventDefault();
+                    addToCart(productKey);
+                    
+                }
+    
+                if (event.target.classList.contains('increase-btn')) {
+                    let quantityElement = event.target.previousElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    quantityElement.innerText = quantity + 1;
+                    addToCart(productKey);
+                }
+    
+                if (event.target.classList.contains('decrease-btn')) {
+                    let quantityElement = event.target.nextElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    console.log(quantity)
+                    if (quantity > 1) {
+                        quantityElement.innerText = quantity - 1;
+                        removeFromCart(productKey);
+                    } else {
+                        removeFromCart(productKey);
+                    }
+                }
+            });
+        });
+    
+        // Load product when the page loads
+        window.onload = function () {
+            loadProduct();
+            loadRelatedProducts();
+        };
+    </script>
+    
+    
+</body>
+</html>

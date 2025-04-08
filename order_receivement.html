@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Tracking</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSzI3CKOvryU6VUz829abXj0VuqrLKelQ&loading=async">
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        
+     const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        async function loadOrders() {
+            const ordersRef = ref(db, "orders");
+            try {
+                const snapshot = await get(ordersRef);
+                if (snapshot.exists()) {
+                    let pendingOrders = [];
+                    let deliveredOrders = [];
+                    
+                    snapshot.forEach((orderSnap) => {
+                        let order = orderSnap.val();
+                        order.id = orderSnap.key;
+                        if (order.status.toLowerCase() === "pending") {
+                            pendingOrders.push(order);
+                        } 
+                    });
+                    
+                    pendingOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                   
+                    
+                    displayOrders(pendingOrders, "");
+                    
+                }
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+            }
+        }
+
+        async function displayOrders(orders, sectionTitle) {
+            const ordersContainer = document.getElementById("orders");
+            
+            let section = document.createElement("div");
+            section.innerHTML = `<h2>${sectionTitle}</h2>`;
+            ordersContainer.appendChild(section);
+
+            for (let order of orders) {
+                let orderDiv = document.createElement("div");
+                orderDiv.classList.add("order");
+                
+                let timeElapsed = getTimeElapsed(order.timestamp);
+                
+                let productsHtml = "";
+                for (let itemId of order.items || []) {
+                    let productData = await getProductDetails(itemId);
+                    productsHtml += `<div class='product'><img src='${productData.image}' alt='${productData.name}'/><p>${productData.name}</p></div>`;
+                }
+                
+                let updateButton = "";
+                if (order.status === "pending") {
+                    updateButton = `<button onclick="markAsDelivered('${order.id}')">Mark as Delivered</button>`;
+                }
+                
+                orderDiv.innerHTML = `
+                    <div class="order-info">
+                        <h3>Order ID: ${order.id}</h3>
+                        <p><strong>Customer:</strong> ${order.fullName}</p>
+                        <p><strong>Total Price:</strong> ${order.totalPrice || "N/A"}</p>
+                        <p><strong>Status:</strong> ${order.status}</p>
+                        <p><strong>Ordered:</strong> ${timeElapsed}</p>
+                        <div class="products">${productsHtml}</div>
+                        <button onclick="markAsDelivered('${order.id}')">Mark as Delivered</button>
+                    </div>
+                    <div class="order-map" id="map-${order.id}"></div>
+                `;
+                ordersContainer.appendChild(orderDiv);
+                
+                if (order.latitude && order.longitude) {
+                    createMiniMap(order.id, order.latitude, order.longitude);
+                }
+            }
+        }
+
+        function getTimeElapsed(timestamp) {
+            const orderTime = new Date(timestamp); // Convert ISO string to Date object
+            const now = new Date(); // Get current time
+        
+            const diff = now - orderTime; // Difference in milliseconds
+            const minutes = Math.floor(diff / 60000);
+        
+            if (minutes < 60) return `${minutes} minutes ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hours ago`;
+            const days = Math.floor(hours / 24);
+            
+            return `${days} days ago`;
+        }
+        
+
+        async function getProductDetails(itemId) {
+            const productRef = ref(db, `products/${itemId}`);
+            const snapshot = await get(productRef);
+            return snapshot.exists() ? snapshot.val() : { name: "Unknown", image: "placeholder.jpg" };
+        }
+        
+        window.markAsDelivered = async function(orderId) {
+            const orderRef = ref(db, `orders/${orderId}`);
+            try {
+                await update(orderRef, { status: "delivered" });
+                alert("Order marked as delivered!");
+                location.reload();
+            } catch (error) {
+                console.error("Error updating order status:", error);
+            }
+        }
+
+        function createMiniMap(orderId, lat, lng) {
+            const mapDiv = document.getElementById(`map-${orderId}`);
+            if (!mapDiv) return;
+            const miniMap = new google.maps.Map(mapDiv, {
+                center: { lat, lng },
+                zoom: 15,
+            });
+            new google.maps.Marker({ position: { lat, lng }, map: miniMap });
+        }
+        
+        window.onload = loadOrders;
+    </script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f0f0; color: #000; }
+        .order { display: flex; flex-direction: column; background: #fff; border-radius: 10px; margin: 10px; padding: 15px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+        .order-info { padding-bottom: 10px; }
+        .products { display: flex; gap: 10px; margin-top: 10px; }
+        .product img { width: 50px; height: 50px; border-radius: 5px; }
+        .order-map { width: 100%; height: 200px; border-radius: 10px; }
+        h3 { color:purple; }
+        strong { color: #d32f2f; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center; color:purple;">Live Order Locations</h2>
+    <div id="orders"></div>
+</body>
+</html>

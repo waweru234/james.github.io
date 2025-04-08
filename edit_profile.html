@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link rel="icon" type="image/png" href="images/logo.png"> 
+    <!-- Font Awesome for Social Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Profile</h2>
+
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="fullName" placeholder="Enter full name">
+        </div>
+
+        <div class="input-group">
+            <label>Phone Number</label>
+            <input type="text" id="phoneNumber" placeholder="Enter phone number">
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Enter email">
+        </div>
+
+        <button id="updateProfile">Update Profile</button>
+        <button id="resetPassword" class="secondary-btn">Reset Password</button>
+    </div>
+
+    <style>
+        /* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Centered Container */
+.container {
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Header */
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Input Fields */
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+label {
+    font-size: 14px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: purple;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: darkmagenta;
+}
+
+/* Secondary Button */
+.secondary-btn {
+    background-color: #ff4444;
+    margin-top: 10px;
+}
+
+.secondary-btn:hover {
+    background-color: #cc0000;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    input {
+        font-size: 14px;
+    }
+    
+    button {
+        font-size: 14px;
+    }
+}
+
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth, updateEmail, sendPasswordResetEmail,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+          };
+          
+          const app = initializeApp(firebaseConfig);
+          console.log("ttt")
+        const auth = getAuth();
+        const db = getDatabase();
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                
+                console.log(user.email)
+           
+      
+        // Get user ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get("uid");
+        
+        if (uid) {
+            
+            const userRef = ref(db, `users/${uid}`);
+            get(userRef).then(snapshot => {
+                if (snapshot.exists()) {
+                    let userData = snapshot.val();
+                    document.getElementById("fullName").value = userData.fullName || "";
+                    document.getElementById("phoneNumber").value = userData.phoneNumber || "";
+                    document.getElementById("email").value = userData.email || "";
+                }
+            }).catch(error => {
+                console.error("Error fetching user data:", error);
+            });
+        }
+
+        // Update Profile Function
+        document.getElementById("updateProfile").addEventListener("click", function () {
+            const fullName = document.getElementById("fullName").value;
+            const phoneNumber = document.getElementById("phoneNumber").value;
+            const email = document.getElementById("email").value;
+
+            if (!fullName || !phoneNumber || !email) {
+                alert("All fields are required!");
+                return;
+            }
+
+            // Update Realtime Database
+            update(ref(db, `users/${uid}`), { fullName, phoneNumber, email })
+                .then(() => {
+                    alert("Profile updated successfully!");
+                })
+                .catch(error => {
+                    console.error("Error updating profile:", error);
+                });
+
+            // Update Firebase Authentication Email
+            if (user) {
+                updateEmail(user, email).catch(error => {
+                    console.error("Error updating email:", error);
+                    alert("Failed to update email. Try re-authenticating.");
+                });
+            }
+        });
+
+        // Send Password Reset Email
+        document.getElementById("resetPassword").addEventListener("click", function () {
+            if (user) {
+                sendPasswordResetEmail(auth, user.email)
+                    .then(() => {
+                        alert("Password reset email sent!");
+                    })
+                    .catch(error => {
+                        console.error("Error sending reset email:", error);
+                        alert("Error sending reset email. Try again later.");
+                    });
+            }
+        });
+    }})
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Admin</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+            authDomain: "edwinecommerce-1c479.firebaseapp.com",
+            databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+            projectId: "edwinecommerce-1c479",
+            storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+            messagingSenderId: "857181457762",
+            appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+          };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUse = "";
+
+        // Get current user before adding a new admin
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUse = user.email;
+                console.log(currentUse)
+            }
+        });
+    
+      
+        window.addAdmin=async function(event) {
+            event.preventDefault();
+            console.log(currentUse) 
+            const emai=currentUse
+            let ooo =emai
+            console.log(emai)
+            const fullName = document.getElementById("fullName").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const phoneNumber = document.getElementById("phoneNumber").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
+                alert("All fields are required.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return;
+            }
+
+            if (currentUse=="") {
+                alert("You must be logged in to add an admin.");
+                return;
+            }
+
+            try {
+                // Create new admin user without logging out the current user
+                const tempAuth = getAuth();
+                const adminCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+                const adminUser = adminCredential.user;
+                console.log(currentUse) 
+                // Store admin details in Firebase Database
+                await set(ref(db, `users/${adminUser.uid}`), {
+                    fullName: fullName,
+                    email: email,
+                    phoneNumber: phoneNumber,
+                    createdAt: new Date().toISOString(),
+                    type: "admin"
+                });
+             console.log(ooo) 
+                // Re-authenticate the original user after adding the admin
+                await signInWithEmailAndPassword(auth, ooo, prompt("Re-enter your password to stay logged in:"));
+
+                alert("Admin added successfully!");
+                document.getElementById("adminForm").reset();
+            } catch (error) {
+                console.error("Error adding admin:", error.message);
+                alert("Error: " + error.message);
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f8f8; }
+        form { 
+            max-width: 400px; 
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            text-align: left;
+        }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border-radius: 5px; 
+            border: 1px solid #ddd; 
+        }
+        button { 
+            background: purple; 
+            color: white; 
+            padding: 10px; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            margin-top: 10px;
+            width: 100%;
+        }
+        button:hover { background:darkmagenta; }
+    </style>
+</head>
+<body>
+    <h2>Add Admin</h2>
+    <form id="adminForm" onsubmit="addAdmin(event);">
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="fullName" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+
+        <label for="confirmPassword">Confirm Password:</label>
+        <input type="password" id="confirmPassword" required>
+
+        <button type="submit">Create Admin</button>
+    </form>
+</body>
+</html>

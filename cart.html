@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Explorer</title>
+  <link rel="stylesheet" href="cart.css">
+  <link rel="icon" type="image/png" href="images/logo.png"> 
+  <!-- Font Awesome for Social Icons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
+  <!-- SweetAlert2 for confirmation dialogs -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <header>
+    <h1 class="store-title">
+      <img src="images/logo.png" alt="Explorer Logo" class="logo"> EXPLORER
+    </h1>
+  </header>
+
+  <div class="cart-container">
+    <div class="cart-header" id="cart-header">cart</div>
+    <!-- Left Side: Cart Items -->
+    <div class="cart-items">
+      <!-- Cart items will be dynamically inserted here -->
+    </div>
+
+    <!-- Right Side: Cart Summary -->
+    <div class="checkout-form">
+      <h2>Enter Your Details</h2>
+      <form>
+        <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input type="text" id="fullname" placeholder="Enter your full name" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" placeholder="Enter your phone number" required>
+        </div>
+        <button type="submit" class="form-submit-btn">Confirm</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="cart-summary">
+    <div class="summary-title">CART SUMMARY</div>
+    <div class="subtotal-row">
+      <span>Subtotal</span>
+      <span id="subtotal-value">KSh 0</span>
+    </div>
+    <p class="delivery-note">Deliveries will be made between 2-3 days</p>
+    <button class="checkout-btn" onclick="confirmOrder()">Checkout ></button>
+  </div>
+  <footer style="background-color: black; color: white; text-align: center; padding: 20px;">
+    <h2>Contact Us</h2>
+    <div class="social-links">
+       
+        <a href="https://x.com/xplorer779?t=_x-56-BHeYLIqsBWXgPNNw&s=08" target="_blank">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <a href="https://chat.whatsapp.com/Gw2xEpJ81GN5cLfeeb3JI8" target="_blank">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="https://www.tiktok.com/@xplorer775?_t=ZM-8uXFsnSwmpS&_r=1" target="_blank">
+            <i class="fab fa-tiktok"></i>
+        </a>
+        <a href="https://www.facebook.com/profile.php?id=61573994129027" target="_blank">
+            <i class="fab fa-facebook"></i>
+        </a>
+        <a href="https://www.instagram.com/explo_rer2025?utm_source=qr&igsh=ZTU4eHpkZTQ4OHI1" target="_blank">
+            <i class="fab fa-instagram"></i>
+        </a>
+    </div>
+    <p>&copy; 2025 Project X. All rights reserved.</p>
+</footer>
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getDatabase, ref, get, update, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+      authDomain: "edwinecommerce-1c479.firebaseapp.com",
+      databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+      projectId: "edwinecommerce-1c479",
+      storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+      messagingSenderId: "857181457762",
+      appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+    const auth = getAuth();
+
+    let subtotal = 0;
+    let cart = [];
+
+    // 🔥 Listen for authentication state
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log("User UID:", user.uid);
+        await loadCart(user);
+      } else {
+        console.log("User not logged in.");
+      }
+    });
+
+    // 📌 Function to load cart
+    async function loadCart(user) {
+      if (!user) return;
+
+      // Load user details
+      let userref = ref(db, `users/${user.uid}/phoneNumber`);
+      let dnd = await get(userref);
+      let phone = dnd.val();
+      let userre = ref(db, `users/${user.uid}/fullName`);
+      let dn = await get(userre);
+      let phon = dn.val();
+      document.getElementById("fullname").value = phon;
+      document.getElementById("phone").value = phone;
+
+      // Load cart items
+      let cartRef = ref(db, `users/${user.uid}/cart`);
+      let snapshot = await get(cartRef);
+      cart = snapshot.exists() ? snapshot.val() : [];
+      if (!Array.isArray(cart)) cart = [];
+
+      // Update cart header
+      let cartHeader = document.getElementById("cart-header");
+      cartHeader.innerHTML = `CART (${cart.length})`;
+
+      // Get cart container
+      let cartContainer = document.querySelector(".cart-items");
+      let subtotalValue = document.getElementById("subtotal-value");
+
+      cartContainer.innerHTML = ""; // Clear previous items
+      subtotal = 0;
+      let productCount = {}; // Store product quantities
+
+      // Count product occurrences
+      cart.forEach(productId => {
+        productCount[productId] = (productCount[productId] || 0) + 1;
+      });
+
+      // Fetch product details
+      for (let productId in productCount) {
+        let productRef = ref(db, "products/" + productId);
+        let productSnapshot = await get(productRef);
+
+        if (productSnapshot.exists()) {
+          let product = productSnapshot.val();
+          let price = parseFloat(product.price) || 0;
+          let name = product.name;
+          let imageUrl = product.image || "images/default.jpg";
+          let quantity = productCount[productId];
+          let totalPrice = price * quantity;
+
+          subtotal += totalPrice; // Add to subtotal
+
+          // Create cart item HTML
+          let cartItemHTML = `
+            <div class="cart-item" data-product-id="${productId}" data-unit-price="${price}">
+              <div class="item-image">
+                <img src="${imageUrl}" alt="${name}">
+              </div>
+              <div class="item-details">
+                <p class="item-name">${name}</p>
+                <div class="quantity-remove-row">
+                  <div class="quantity-control">
+                    <button class="decrease-btn" onclick="updateQuantity('${productId}', -1)">−</button>
+                    <span class="cart-quantity">${quantity}</span>
+                    <button class="increase-btn" onclick="updateQuantity('${productId}', 1)">+</button>
+                  </div>
+                  <button class="remove-btn" onclick="removeItem('${productId}')">🗑 Remove</button>
+                </div>
+                <p class="item-price">KSh ${totalPrice.toLocaleString()}</p>
+              </div>
+            </div>
+          `;
+
+          cartContainer.innerHTML += cartItemHTML;
+        }
+      }
+
+      // Update subtotal
+      subtotalValue.innerText = "KSh " + subtotal.toLocaleString();
+    }
+
+    // 📌 Function to update quantity (+/-)
+    window.updateQuantity = async function (productId, change) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to be logged in to modify the cart.");
+        return;
+      }
+
+      let userCartRef = ref(db, `users/${user.uid}/cart`);
+      let snapshot = await get(userCartRef);
+      let cart = snapshot.exists() ? snapshot.val() : [];
+      if (!Array.isArray(cart)) cart = [];
+
+      if (change === 1) {
+        cart.push(productId); // Increase quantity
+      } else {
+        let index = cart.indexOf(productId);
+        if (index > -1) {
+          cart.splice(index, 1); // Decrease quantity
+        }
+      }
+
+      // Update Firebase
+      await update(ref(db, `users/${user.uid}`), { cart: cart });
+
+      // Reload cart UI without refreshing the page
+      await loadCart(user);
+    };
+
+    // 📌 Function to remove an item completely
+    window.removeItem = async function (productId) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to be logged in to remove items.");
+        return;
+      }
+
+      let userCartRef = ref(db, `users/${user.uid}/cart`);
+      let snapshot = await get(userCartRef);
+      let cart = snapshot.exists() ? snapshot.val() : [];
+      if (!Array.isArray(cart)) cart = [];
+
+      cart = cart.filter(id => id !== productId);
+
+      // Update Firebase
+      await update(ref(db, `users/${user.uid}`), { cart: cart });
+
+      // Reload cart UI without refreshing the page
+      await loadCart(user);
+    };
+
+    // 📌 Function to confirm order
+    window.confirmOrder = async function () {
+      if (cart.length === 0) {
+          alert("Your cart is empty.");
+          return;
+      }
+  
+      const user = auth.currentUser;
+      if (!user) {
+          alert("You need to be logged in to place an order.");
+          return;
+      }
+  
+      // Ask for confirmation
+      const result = await Swal.fire({
+          title: "Are you sure?",
+          text: "Do you want to place this order?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Yes, place order!",
+          cancelButtonText: "No, cancel!",
+      });
+  
+      if (!result.isConfirmed) return;
+  
+      // Get user location
+      let latitude = 0;
+      let longitude = 0;
+      if (navigator.geolocation) {
+          try {
+              const position = await new Promise((resolve, reject) => {
+                  navigator.geolocation.getCurrentPosition(resolve, reject);
+              });
+              latitude = position.coords.latitude;
+              longitude = position.coords.longitude;
+          } catch (error) {
+              alert("Failed to get location. Please enable location services.");
+              return;
+          }
+      } else {
+          alert("Geolocation is not supported by this browser.");
+          return;
+      }
+  
+      // Fetch user data from Firebase
+      const userRef = ref(db, `users/${user.uid}`);
+      const snapshot = await get(userRef);
+      let referralKey = snapshot.exists() && snapshot.val().referralKey ? snapshot.val().referralKey : null;
+  
+      // Generate a new referral key only if the user does not already have one
+      if (!referralKey) {
+          referralKey = generateReferralKey();
+          await update(userRef, { referralKey: referralKey }); // Save the referral key to the user node
+      }
+  
+      // Create order object
+      const orderData = {
+          userId: user.uid,
+          fullName: document.getElementById("fullname").value,
+          phoneNumber: document.getElementById("phone").value,
+          items: cart,
+          totalPrice: subtotal,
+          status: "Pending",
+          timestamp: new Date().toISOString(),
+          latitude: latitude,
+          longitude: longitude,
+          referralKey: referralKey, // Store referral key in the order
+      };
+  
+      // Save order to Firebase
+      const orderRef = ref(db, `orders/`);
+      await push(orderRef, orderData);
+  
+      // Clear the cart in Firebase
+      await update(userRef, { cart: [] });
+  
+      // Show success message
+      Swal.fire("Order Placed!", `Your order has been placed successfully.\nYour Referral Code: ${referralKey}`, "success");
+      await loadCart(user);
+  };
+  
+  // Function to generate a random referral key
+  function generateReferralKey() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let referralKey = "";
+      for (let i = 0; i < 8; i++) {
+          referralKey += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return referralKey;
+  }
+  
+      // Reload cart UI
+      
+    
+  </script>
+</body>
+</html>

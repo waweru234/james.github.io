@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - EXPLORER</title>
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="icon" type="image/png" href="images/logo.png">
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <!-- Store Title at Top Left -->
+  <header class="store-header">
+      <h1 class="store-title">
+      <img src="images/logo.png" alt="Explorer Logo" class="logo"> EXPLORER
+    </h1>
+  </header>
+  
+  <div class="auth-containerr">
+    <div class="auth-header">
+      <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+      <h2>Login</h2>
+    </div>
+    <form id="loginForm" class="auth-form">
+      <div class="auth-input-group">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+      </div>
+      <div class="auth-input-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+      </div>
+      <button type="button" id="loginBtn" class="auth-button">Sign In</button>
+    </form>
+  </div>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendEmailVerification, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVtHTfCbR308K97qS2E1el33agw7CMfEU",
+      authDomain: "edwinecommerce-1c479.firebaseapp.com",
+      databaseURL: "https://edwinecommerce-1c479-default-rtdb.firebaseio.com",
+      projectId: "edwinecommerce-1c479",
+      storageBucket: "edwinecommerce-1c479.firebasestorage.app",
+      messagingSenderId: "857181457762",
+      appId: "1:857181457762:web:eb0d79340b06827efcb03b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    // Set persistence to keep the user logged in
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        console.log("Persistence set to local");
+      })
+      .catch((error) => {
+        console.error("Error setting persistence:", error.message);
+      });
+
+    // Auto-fill email and password on page load
+    window.addEventListener("load", function() {
+      const savedEmail = localStorage.getItem("savedEmail");
+      const savedPassword = localStorage.getItem("savedPassword");
+
+      if (savedEmail && savedPassword) {
+        document.getElementById("loginEmail").value = savedEmail;
+        document.getElementById("loginPassword").value = savedPassword;
+      }
+    });
+
+    // Login function
+    document.getElementById("loginBtn").addEventListener("click", function(event) {
+      event.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          if (!user.emailVerified) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Email not verified',
+              text: 'Please verify your email address before logging in.'
+            }).then(() => {
+              sendEmailVerification(user)
+                .then(() => {
+                  console.log("Verification email sent.");
+                  return signOut(auth);
+                })
+                .catch((error) => {
+                  console.error("Error sending verification email:", error.message);
+                });
+            });
+          } else {
+            // Save email and password to localStorage
+            localStorage.setItem("savedEmail", email);
+            localStorage.setItem("savedPassword", password);
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Login Successful!',
+              text: 'Welcome back!',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.replace('index.html');
+            });
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: error.message
+          });
+        });
+    });
+  </script>
+</body>
+</html>
